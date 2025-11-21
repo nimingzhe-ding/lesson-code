@@ -3,7 +3,8 @@ const app = getApp()
 // 注意：这里的 UUID 需要根据你的 ESP32 代码进行修改
 // 常见的串口透传服务 UUID 可能是 0000FFE0...
 // 请确保 ESP32 广播的服务 UUID 与此处匹配，或者在代码中动态查找
-const SERVICE_UUID_FILTER = ""; // 如果为空，则扫描所有设备
+// 填入 ESP32 代码中定义的 SERVICE_UUID
+const SERVICE_UUID_FILTER = "6E400001-B5A3-F393-E0A9-E50E24DCCA9E"; 
 
 Page({
   data: {
@@ -200,20 +201,24 @@ Page({
       deviceId,
       success: (res) => {
         this.addLog('获取服务列表成功，数量: ' + res.services.length);
-        // 遍历服务，找到我们需要的主服务
-        // 这里为了通用性，我们尝试寻找包含 notify 属性特征值的服务
-        // 实际开发中，最好指定 UUID，例如：
-        // const targetService = res.services.find(s => s.uuid.indexOf('FFE0') > -1);
         
-        if (res.services.length > 0) {
-          // 简单策略：遍历所有服务，寻找特征值
-          // 注意：iOS 上获取到的 UUID 可能是大写且带横杠的
-          // 这里我们取最后一个服务尝试（通常自定义服务在后面），或者你可以指定索引
-          let serviceId = res.services[res.services.length - 1].uuid;
-          this.setData({ serviceId });
-          this.addLog('尝试使用服务: ' + serviceId);
-          this.getCharacteristics(deviceId, serviceId);
+        // --- 修改开始：精确查找目标服务 ---
+        // 目标 UUID (注意：小程序扫描到的 UUID 可能是大写也可能是小写，最好统一转大写比较)
+        const targetUUID = "6E400001-B5A3-F393-E0A9-E50E24DCCA9E";
+        
+        const targetService = res.services.find(s => 
+          s.uuid.toUpperCase() === targetUUID || 
+          s.uuid.toUpperCase().indexOf("6E400001") > -1
+        );
+
+        if (targetService) {
+          this.setData({ serviceId: targetService.uuid });
+          this.addLog('锁定目标服务: ' + targetService.uuid);
+          this.getCharacteristics(deviceId, targetService.uuid);
+        } else {
+          this.addLog('未找到指定的通信服务，请检查 ESP32 代码 UUID');
         }
+        // --- 修改结束 ---
       },
       fail: (err) => {
         this.addLog('获取服务失败: ' + err.errMsg);
