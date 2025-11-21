@@ -76,11 +76,25 @@ Page({
   },
 
   playNews() {
-    if (this.data.isPlayingNews) {
-      this.data.innerAudioContext.pause();
-    } else {
-      this.data.innerAudioContext.play();
-    }
+    wx.showActionSheet({
+      itemList: ['手机播放', '拐杖(AI模块)播报'],
+      success: (res) => {
+        if (res.tapIndex === 0) {
+          // 手机播放
+          if (this.data.isPlayingNews) {
+            this.data.innerAudioContext.pause();
+          } else {
+            this.data.innerAudioContext.play();
+          }
+        } else {
+          // 设备播报 (发送文本给 AI 模块进行 TTS)
+          // 这里模拟一条新闻摘要，实际可从 API 获取
+          const newsSummary = "今日新闻摘要：全国大部地区气温回升，适合户外活动。社区医院将开展免费体检活动。";
+          this.sendToDevice('TTS:' + newsSummary);
+          this.addLog('已发送新闻播报指令');
+        }
+      }
+    })
   },
 
   getWeather() {
@@ -246,10 +260,13 @@ Page({
             dataStr += String.fromCharCode(dataView.getUint8(i));
           }
           
-          console.log('收到 AI 模块数据:', dataStr);
-          this.addLog('AI 模块指令: ' + dataStr);
+          console.log('收到设备数据:', dataStr);
+          this.addLog('收到指令: ' + dataStr);
 
           // 简单的指令解析
+          // 兼容多种模块：
+          // 1. 防跌倒模块 -> ESP32 -> "FALL"
+          // 2. AI 模块 -> ESP32 -> "AI:HELP", "AI:NEWS", "AI:WEATHER"
           if (dataStr.includes('FALL') || dataStr.includes('01')) {
             this.handleEvent('fall', '检测到跌倒！');
           } else if (dataStr.includes('HELP') || dataStr.includes('SOS')) {
@@ -257,11 +274,11 @@ Page({
           } else if (dataStr.includes('NEWS')) {
             // AI 语音控制播放新闻
             this.playNews();
-            this.addLog('AI 指令: 播放/暂停新闻');
+            this.addLog('执行指令: 播放/暂停新闻');
           } else if (dataStr.includes('WEATHER')) {
             // AI 语音查询天气
             this.broadcastWeather();
-            this.addLog('AI 指令: 查询天气');
+            this.addLog('执行指令: 查询天气');
           }
         })
       },
@@ -329,7 +346,7 @@ Page({
     }
   },
 
-  // 发送数据给 ESP32 -> AI 模块
+  // 发送数据给 ESP32 (支持分包发送长文本)
   sendToDevice(msg) {
     if (!this.data.connected || !this.data.deviceId || !this.data.serviceId || !this.data.characteristicId) {
       this.addLog('未连接设备，无法发送: ' + msg);
@@ -343,17 +360,35 @@ Page({
       dataView.setUint8(i, msg.charCodeAt(i));
     }
 
-    wx.writeBLECharacteristicValue({
-      deviceId: this.data.deviceId,
-      serviceId: this.data.serviceId,
-      characteristicId: this.data.characteristicId,
-      value: buffer,
-      success: () => {
-        this.addLog('发送指令成功: ' + msg);
-      },
-      fail: (err) => {
-        this.addLog('发送失败: ' + err.errMsg);
+    // 分包发送逻辑 (BLE 每包通常限制 20 字节)
+    const MAX_CHUNK = 20;
+    let offset = 0;
+
+    const sendLoop = () => {
+      if (offset >= buffer.byteLength) {
+        this.addLog('指令发送完成: ' + (msg.length > 10 ? msg.substring(0,10)+'...' : msg));
+        return;
       }
-    })
+
+      let length = Math.min(MAX_CHUNK, buffer.byteLength - offset);
+      let chunk = buffer.slice(offset, offset + length);
+
+      wx.writeBLECharacteristicValue({
+        deviceId: this.data.deviceId,
+        serviceId: this.data.serviceId,
+        characteristicId: this.data.characteristicId,
+        value: chunk,
+        success: () => {
+          offset += length;
+          // 增加 50ms 延时，防止发送过快导致丢包
+          setTimeout(sendLoop, 50);
+        },
+        fail: (err) => {
+          this.addLog('发送失败: ' + err.errMsg);
+        }
+      })
+    };
+
+    sendLoop();
   },
 })
