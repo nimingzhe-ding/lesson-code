@@ -1,0 +1,9 @@
+<view class="container">
+  <view class="title">欢迎使用智能拐杖</view>
+  <view class="card">
+    <view style="text-align: center; margin-bottom: 40rpx; color: #666;">请选择您的身份</view>
+    <button class="btn-primary" bindtap="goToElder">我是老人 (连接拐杖)</button>
+    <view style="height: 30rpx;"></view>
+    <button class="btn-primary" style="background-color: #2196F3;" bindtap="goToFamily">我是亲属 (查看状态)</button>
+  </view>
+</view>

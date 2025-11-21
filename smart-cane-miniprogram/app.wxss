@@ -1,0 +1,70 @@
+/**app.wxss**/
+.container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 50rpx;
+  box-sizing: border-box;
+} 
+
+page {
+  background-color: #f0f2f5;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Segoe UI, Arial, Roboto, 'PingFang SC', 'miui', 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;
+}
+
+.card {
+  background: white;
+  border-radius: 20rpx;
+  padding: 40rpx;
+  width: 100%;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.05);
+  margin-bottom: 30rpx;
+}
+
+.title {
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20rpx;
+  text-align: center;
+}
+
+.btn-primary {
+  background-color: #4CAF50;
+  color: white;
+  border-radius: 50rpx;
+  padding: 25rpx 0;
+  font-size: 34rpx;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 6rpx 10rpx rgba(76, 175, 80, 0.3);
+  margin-top: 20rpx;
+}
+
+.btn-primary:active {
+  background-color: #43a047;
+}
+
+.btn-danger {
+  background-color: #f44336;
+  color: white;
+  border-radius: 50rpx;
+  padding: 25rpx 0;
+  font-size: 34rpx;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 6rpx 10rpx rgba(244, 67, 54, 0.3);
+  margin-top: 20rpx;
+}
+
+.btn-danger:active {
+  background-color: #d32f2f;
+}
+
+.status-text {
+  font-size: 36rpx;
+  text-align: center;
+  margin: 20rpx 0;
+}

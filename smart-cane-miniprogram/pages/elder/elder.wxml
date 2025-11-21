@@ -1,0 +1,23 @@
+<view class="container">
+  <view class="card">
+    <view class="title">设备连接</view>
+    <view class="status-text">连接状态: {{connected ? '已连接' : '未连接'}}</view>
+    <button class="btn-primary" bindtap="startScan" wx:if="{{!connected}}">搜索并连接拐杖</button>
+    <button class="btn-danger" bindtap="disconnect" wx:if="{{connected}}">断开连接</button>
+  </view>
+
+  <view class="card" wx:if="{{connected}}">
+    <view class="title">实时状态</view>
+    <view class="status-indicator {{isFall ? 'fall' : 'normal'}}">
+      {{isFall ? '跌倒报警！' : '状态正常'}}
+    </view>
+    <view wx:if="{{isFall}}" style="margin-top: 20rpx; text-align: center; color: red;">
+      正在向亲属发送警报...
+    </view>
+    <button class="btn-primary" bindtap="resetStatus" wx:if="{{isFall}}">解除警报</button>
+  </view>
+  
+  <view class="log-area">
+    <text>日志:\n{{log}}</text>
+  </view>
+</view>

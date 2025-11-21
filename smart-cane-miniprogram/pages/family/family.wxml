@@ -1,0 +1,14 @@
+<view class="container">
+  <view class="card">
+    <view class="title">亲属管控</view>
+    <view style="margin-bottom: 20rpx; color: #666; text-align: center;">查看已绑定老人的状态</view>
+    
+    <view class="status-box {{remoteStatus === 'fall' ? 'fall-bg' : 'normal-bg'}}">
+      <text class="status-label">当前状态</text>
+      <text class="status-value">{{remoteStatus === 'fall' ? '跌倒报警！' : '正常'}}</text>
+      <text class="time-label">更新时间: {{lastUpdateTime}}</text>
+    </view>
+
+    <button class="btn-primary" bindtap="refreshStatus">刷新状态</button>
+  </view>
+</view>

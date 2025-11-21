@@ -1,0 +1,34 @@
+.status-indicator {
+  width: 100%;
+  height: 200rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 50rpx;
+  font-weight: bold;
+  border-radius: 20rpx;
+  color: white;
+  transition: all 0.3s;
+}
+.normal {
+  background-color: #4CAF50;
+}
+.fall {
+  background-color: #f44336;
+  animation: blink 1s infinite;
+}
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+.log-area {
+  margin-top: 20rpx;
+  font-size: 24rpx;
+  color: #999;
+  width: 100%;
+  word-break: break-all;
+  background: #eee;
+  padding: 10rpx;
+  border-radius: 10rpx;
+}

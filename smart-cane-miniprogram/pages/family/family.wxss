@@ -1,0 +1,37 @@
+.status-box {
+  padding: 60rpx 40rpx;
+  border-radius: 15rpx;
+  color: white;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 40rpx;
+  transition: all 0.3s;
+}
+.normal-bg {
+  background-color: #4CAF50;
+}
+.fall-bg {
+  background-color: #f44336;
+  animation: blink 1s infinite;
+}
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+.status-label {
+  font-size: 32rpx;
+  opacity: 0.9;
+  margin-bottom: 10rpx;
+}
+.status-value {
+  font-size: 70rpx;
+  font-weight: bold;
+  margin: 20rpx 0;
+}
+.time-label {
+  font-size: 26rpx;
+  opacity: 0.8;
+  margin-top: 10rpx;
+}
