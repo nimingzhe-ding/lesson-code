@@ -28,4 +28,28 @@
       {{analyzing ? '正在分析中...' : '生成 AI 健康报告'}}
     </button>
   </view>
+
+  <!-- 亲情设置模块 -->
+  <view class="card">
+    <view class="title">贴心管家</view>
+    
+    <!-- 吃药提醒设置 -->
+    <view class="section-title">吃药提醒设置</view>
+    <view class="input-group">
+      <picker mode="time" value="{{remindTime}}" bindchange="bindTimeChange">
+        <view class="picker">
+          提醒时间: {{remindTime || '点击选择'}}
+        </view>
+      </picker>
+      <input class="input-box" placeholder="输入提醒内容(如:吃降压药)" bindinput="bindContentInput" value="{{remindContent}}"/>
+      <button class="btn-small" bindtap="addReminder">添加提醒</button>
+    </view>
+
+    <view class="reminder-list">
+      <view class="reminder-item" wx:for="{{reminders}}" wx:key="_id">
+        <text>{{item.time}} - {{item.content}}</text>
+        <text class="delete-btn" bindtap="deleteReminder" data-id="{{item._id}}">删除</text>
+      </view>
+    </view>
+  </view>
 </view>

@@ -32,3 +32,52 @@
   padding: 10rpx;
   border-radius: 10rpx;
 }
+
+.weather-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #E3F2FD;
+  padding: 20rpx;
+  border-radius: 15rpx;
+  margin-bottom: 20rpx;
+}
+
+.weather-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.btn-small {
+  background-color: #2196F3;
+  color: white;
+  font-size: 26rpx;
+  padding: 10rpx 20rpx;
+  border-radius: 30rpx;
+  margin: 0;
+}
+
+.news-box {
+  background: #FFF3E0;
+  padding: 20rpx;
+  border-radius: 15rpx;
+}
+
+.section-title {
+  font-weight: bold;
+  margin-bottom: 15rpx;
+  color: #E65100;
+}
+
+.audio-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.btn-control {
+  background-color: #FF9800;
+  color: white;
+  width: 200rpx;
+  border-radius: 40rpx;
+}

@@ -16,6 +16,28 @@
     </view>
     <button class="btn-primary" bindtap="resetStatus" wx:if="{{isFall}}">解除警报</button>
   </view>
+
+  <view class="card" wx:if="{{connected}}">
+    <view class="title">生活助手</view>
+    
+    <!-- 天气模块 -->
+    <view class="weather-box">
+      <view class="weather-info">
+        <text style="font-size: 40rpx;">{{weatherData.temp}}°C {{weatherData.text}}</text>
+        <text style="font-size: 28rpx; color: #666;">{{weatherData.city}}</text>
+      </view>
+      <button class="btn-small" bindtap="broadcastWeather">播报天气</button>
+    </view>
+
+    <!-- 新闻模块 -->
+    <view class="news-box">
+      <view class="section-title">新闻联播</view>
+      <view class="audio-controls">
+        <button class="btn-control" bindtap="playNews">{{isPlayingNews ? '暂停' : '播放'}}</button>
+        <text style="font-size: 24rpx; color: #999; margin-top: 10rpx;">{{isPlayingNews ? '正在播放今日新闻摘要...' : '点击播放收听'}}</text>
+      </view>
+    </view>
+  </view>
   
   <view class="log-area">
     <text>日志:\n{{log}}</text>

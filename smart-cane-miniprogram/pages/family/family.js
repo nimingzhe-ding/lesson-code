@@ -5,11 +5,71 @@ Page({
     remoteStatus: 'normal', // normal 或 fall
     lastUpdateTime: '暂无数据',
     analyzing: false,
-    aiResult: ''
+    aiResult: '',
+    remindTime: '08:00',
+    remindContent: '',
+    reminders: []
   },
 
   onLoad() {
     this.refreshStatus();
+    this.loadReminders();
+  },
+
+  // 加载提醒列表
+  loadReminders() {
+    if (!wx.cloud) return;
+    const db = wx.cloud.database();
+    db.collection('cane_reminders').get({
+      success: res => {
+        this.setData({ reminders: res.data });
+      }
+    });
+  },
+
+  bindTimeChange(e) {
+    this.setData({ remindTime: e.detail.value });
+  },
+
+  bindContentInput(e) {
+    this.setData({ remindContent: e.detail.value });
+  },
+
+  addReminder() {
+    if (!this.data.remindContent) {
+      wx.showToast({ title: '请输入提醒内容', icon: 'none' });
+      return;
+    }
+    
+    const db = wx.cloud.database();
+    db.collection('cane_reminders').add({
+      data: {
+        time: this.data.remindTime,
+        content: this.data.remindContent,
+        createTime: db.serverDate()
+      },
+      success: () => {
+        wx.showToast({ title: '添加成功' });
+        this.setData({ remindContent: '' });
+        this.loadReminders();
+      },
+      fail: err => {
+        // 如果集合不存在，提示创建
+        if (err.errMsg.includes('collection not exist')) {
+           wx.showModal({ title: '提示', content: '请在云开发控制台创建 cane_reminders 集合' });
+        }
+      }
+    });
+  },
+
+  deleteReminder(e) {
+    const id = e.currentTarget.dataset.id;
+    const db = wx.cloud.database();
+    db.collection('cane_reminders').doc(id).remove({
+      success: () => {
+        this.loadReminders();
+      }
+    });
   },
 
   analyzeHealth() {

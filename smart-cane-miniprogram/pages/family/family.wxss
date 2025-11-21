@@ -73,3 +73,59 @@
 .btn-ai:active {
   opacity: 0.9;
 }
+
+/* 贴心管家样式 */
+.section-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  margin: 20rpx 0 10rpx;
+  color: #555;
+}
+
+.input-group {
+  background: #f8f9fa;
+  padding: 20rpx;
+  border-radius: 10rpx;
+  margin-bottom: 20rpx;
+}
+
+.picker {
+  background: white;
+  padding: 15rpx;
+  border-radius: 8rpx;
+  margin-bottom: 15rpx;
+  border: 1px solid #eee;
+}
+
+.input-box {
+  background: white;
+  padding: 15rpx;
+  border-radius: 8rpx;
+  margin-bottom: 15rpx;
+  border: 1px solid #eee;
+}
+
+.btn-small {
+  background-color: #FF9800;
+  color: white;
+  font-size: 28rpx;
+  margin: 0;
+}
+
+.reminder-list {
+  margin-top: 20rpx;
+}
+
+.reminder-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx;
+  border-bottom: 1px solid #eee;
+  font-size: 28rpx;
+}
+
+.delete-btn {
+  color: #f44336;
+  padding: 10rpx;
+}

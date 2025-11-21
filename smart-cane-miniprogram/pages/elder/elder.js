@@ -12,10 +12,20 @@ Page({
     deviceId: '',
     serviceId: '',
     characteristicId: '',
-    log: '准备就绪'
+    log: '准备就绪',
+    weatherData: { temp: '25', text: '晴', city: '北京' },
+    isPlayingNews: false,
+    innerAudioContext: null
   },
 
   onLoad() {
+    // 初始化音频
+    this.initAudio();
+    // 获取天气 (模拟)
+    this.getWeather();
+    // 启动定时器检查提醒
+    this.startReminderCheck();
+
     // 初始化蓝牙模块
     wx.openBluetoothAdapter({
       success: (res) => {
@@ -38,6 +48,10 @@ Page({
   onUnload() {
     this.disconnect();
     wx.closeBluetoothAdapter();
+    if (this.data.innerAudioContext) {
+      this.data.innerAudioContext.destroy();
+    }
+    if (this.reminderTimer) clearInterval(this.reminderTimer);
   },
 
   addLog(str) {
@@ -48,6 +62,75 @@ Page({
       currentLog = currentLog.substring(currentLog.length - 500);
     }
     this.setData({ log: currentLog })
+  },
+
+  initAudio() {
+    const iac = wx.createInnerAudioContext();
+    // 这里使用一个示例音频地址，实际请替换为新闻联播的音频流或文件
+    iac.src = 'https://down.ear0.com:3321/preview?soundid=38668&type=mp3'; 
+    iac.onPlay(() => this.setData({ isPlayingNews: true }));
+    iac.onPause(() => this.setData({ isPlayingNews: false }));
+    iac.onEnded(() => this.setData({ isPlayingNews: false }));
+    iac.onError((res) => console.log(res.errMsg));
+    this.setData({ innerAudioContext: iac });
+  },
+
+  playNews() {
+    if (this.data.isPlayingNews) {
+      this.data.innerAudioContext.pause();
+    } else {
+      this.data.innerAudioContext.play();
+    }
+  },
+
+  getWeather() {
+    // 实际开发中请调用 wx.request 请求天气 API (如和风天气、高德地图)
+    // 这里模拟数据
+    this.setData({
+      weatherData: { temp: '22', text: '多云', city: '上海' }
+    });
+  },
+
+  broadcastWeather() {
+    const text = `今天${this.data.weatherData.city}天气${this.data.weatherData.text}，气温${this.data.weatherData.temp}度`;
+    this.sendToDevice('TTS:' + text);
+    wx.showToast({ title: '已发送播报指令' });
+  },
+
+  startReminderCheck() {
+    // 每分钟检查一次是否有提醒
+    this.reminderTimer = setInterval(() => {
+      const now = new Date();
+      const timeStr = `${('0'+now.getHours()).slice(-2)}:${('0'+now.getMinutes()).slice(-2)}`;
+      
+      if (!wx.cloud) return;
+      const db = wx.cloud.database();
+      db.collection('cane_reminders').where({
+        time: timeStr
+      }).get({
+        success: res => {
+          if (res.data.length > 0) {
+            res.data.forEach(reminder => {
+              // 触发提醒
+              this.handleReminder(reminder.content);
+            });
+          }
+        }
+      });
+    }, 60000); // 60秒检查一次
+  },
+
+  handleReminder(content) {
+    // 1. 手机端弹窗/震动
+    wx.vibrateLong();
+    wx.showModal({
+      title: '吃药提醒',
+      content: content,
+      showCancel: false
+    });
+    
+    // 2. 发送给 AI 模块进行语音播报
+    this.sendToDevice('TTS:请注意，' + content);
   },
 
   startScan() {
@@ -171,6 +254,14 @@ Page({
             this.handleEvent('fall', '检测到跌倒！');
           } else if (dataStr.includes('HELP') || dataStr.includes('SOS')) {
             this.handleEvent('help', '检测到语音呼救！');
+          } else if (dataStr.includes('NEWS')) {
+            // AI 语音控制播放新闻
+            this.playNews();
+            this.addLog('AI 指令: 播放/暂停新闻');
+          } else if (dataStr.includes('WEATHER')) {
+            // AI 语音查询天气
+            this.broadcastWeather();
+            this.addLog('AI 指令: 查询天气');
           }
         })
       },
@@ -236,5 +327,33 @@ Page({
         }
       })
     }
-  }
+  },
+
+  // 发送数据给 ESP32 -> AI 模块
+  sendToDevice(msg) {
+    if (!this.data.connected || !this.data.deviceId || !this.data.serviceId || !this.data.characteristicId) {
+      this.addLog('未连接设备，无法发送: ' + msg);
+      return;
+    }
+
+    // 将字符串转为 ArrayBuffer
+    let buffer = new ArrayBuffer(msg.length);
+    let dataView = new DataView(buffer);
+    for (let i = 0; i < msg.length; i++) {
+      dataView.setUint8(i, msg.charCodeAt(i));
+    }
+
+    wx.writeBLECharacteristicValue({
+      deviceId: this.data.deviceId,
+      serviceId: this.data.serviceId,
+      characteristicId: this.data.characteristicId,
+      value: buffer,
+      success: () => {
+        this.addLog('发送指令成功: ' + msg);
+      },
+      fail: (err) => {
+        this.addLog('发送失败: ' + err.errMsg);
+      }
+    })
+  },
 })
