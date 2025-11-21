@@ -156,7 +156,13 @@ Page({
           res.devices.forEach(device => {
             // 过滤逻辑：根据设备名称过滤
             // 请将 'ESP32' 或 'Cane' 替换为你 ESP32 设置的蓝牙名称
-            if (device.name && (device.name.includes('ESP32') || device.name.includes('Cane') || device.localName.includes('ESP32'))) {
+            if (device.name && (
+              device.name.includes('ESP32') || 
+              device.name.includes('Cane') || 
+              device.name.includes('BT-11') || // 新增：匹配 BT-11 模块名称
+              device.localName.includes('BT-11') || // 新增：匹配本地名称
+              device.localName.includes('ESP32')
+            )) {
               this.addLog('发现目标设备: ' + device.name);
               wx.stopBluetoothDevicesDiscovery(); // 找到后停止搜索
               this.connectDevice(device.deviceId);
