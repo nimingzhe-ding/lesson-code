@@ -8,23 +8,61 @@ Page({
     aiResult: '',
     remindTime: '08:00',
     remindContent: '',
-    reminders: []
+    reminders: [],
+    myBindingCode: '', // 当前绑定的老人
+    inputCode: ''
   },
 
   onLoad() {
+    // 读取本地存储的绑定关系
+    const savedCode = wx.getStorageSync('familyBindingCode');
+    if (savedCode) {
+      this.setData({ myBindingCode: savedCode });
+      this.refreshStatus();
+      this.loadReminders();
+    }
+  },
+
+  bindInput(e) {
+    this.setData({ inputCode: e.detail.value });
+  },
+
+  confirmBind() {
+    if (!this.data.inputCode || this.data.inputCode.length !== 6) {
+      wx.showToast({ title: '请输入6位绑定码', icon: 'none' });
+      return;
+    }
+    wx.setStorageSync('familyBindingCode', this.data.inputCode);
+    this.setData({ myBindingCode: this.data.inputCode });
     this.refreshStatus();
     this.loadReminders();
+    wx.showToast({ title: '绑定成功' });
+  },
+
+  unbind() {
+    wx.removeStorageSync('familyBindingCode');
+    this.setData({ 
+      myBindingCode: '', 
+      remoteStatus: 'normal',
+      lastUpdateTime: '暂无数据',
+      reminders: []
+    });
   },
 
   // 加载提醒列表
   loadReminders() {
-    if (!wx.cloud) return;
+    if (!wx.cloud || !this.data.myBindingCode) return;
     const db = wx.cloud.database();
-    db.collection('cane_reminders').get({
-      success: res => {
-        this.setData({ reminders: res.data });
-      }
-    });
+    db.collection('cane_reminders')
+      .where({
+        // 实际应用中提醒也应该跟绑定码关联，这里暂简化
+        // bindingCode: this.data.myBindingCode 
+      })
+      .get({
+        success: res => {
+          this.setData({ reminders: res.data });
+        }
+      });
   },
 
   bindTimeChange(e) {
@@ -95,6 +133,8 @@ Page({
   },
 
   refreshStatus() {
+    if (!this.data.myBindingCode) return;
+
     if (!wx.cloud) {
       wx.showToast({ title: '云开发未启用', icon: 'none' });
       return;
@@ -103,9 +143,11 @@ Page({
     wx.showLoading({ title: '加载中' });
     const db = wx.cloud.database();
     
-    // 获取最新的一条状态记录
-    // 实际应用中，这里应该根据绑定的老人ID进行查询
+    // 根据绑定码查询状态
     db.collection('cane_status')
+      .where({
+        bindingCode: this.data.myBindingCode
+      })
       .orderBy('updateTime', 'desc')
       .limit(1)
       .get({

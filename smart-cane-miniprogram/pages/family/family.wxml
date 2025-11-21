@@ -1,22 +1,37 @@
 <view class="container">
-  <view class="card">
-    <view class="title">亲属管控</view>
-    <view style="margin-bottom: 20rpx; color: #666; text-align: center;">查看已绑定老人的状态</view>
-    
-    <view class="status-box {{remoteStatus === 'fall' ? 'fall-bg' : 'normal-bg'}}">
-      <text class="status-label">当前状态</text>
-      <text class="status-value">{{statusText || (remoteStatus === 'fall' ? '异常报警' : '正常')}}</text>
-      <view wx:if="{{remoteStatus === 'fall'}}" style="margin-top: 10rpx; font-size: 28rpx; background: rgba(0,0,0,0.2); padding: 5rpx 15rpx; border-radius: 10rpx;">
-        <text>⚠️ 报警状态：蜂鸣器已触发</text>
-      </view>
-      <text class="time-label">更新时间: {{lastUpdateTime}}</text>
+  <!-- 未绑定状态 -->
+  <view class="card" wx:if="{{!myBindingCode}}">
+    <view class="title">绑定老人</view>
+    <view style="margin-bottom: 30rpx; color: #666; text-align: center;">
+      请输入老人端显示的6位绑定码
     </view>
-
-    <button class="btn-primary" bindtap="refreshStatus">刷新状态</button>
+    <input class="input-box" type="number" placeholder="请输入6位绑定码" bindinput="bindInput" maxlength="6" style="text-align: center; font-size: 40rpx; letter-spacing: 10rpx;"/>
+    <button class="btn-primary" bindtap="confirmBind">确认绑定</button>
   </view>
 
-  <!-- AI 分析模块 -->
-  <view class="card">
+  <!-- 已绑定状态 -->
+  <view wx:else style="width: 100%;">
+    <view class="card">
+      <view class="title">亲属管控</view>
+      <view style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20rpx;">
+        <text style="color: #666;">已绑定: {{myBindingCode}}</text>
+        <text style="color: #f44336; font-size: 28rpx;" bindtap="unbind">解除绑定</text>
+      </view>
+      
+      <view class="status-box {{remoteStatus === 'fall' ? 'fall-bg' : 'normal-bg'}}">
+        <text class="status-label">当前状态</text>
+        <text class="status-value">{{statusText || (remoteStatus === 'fall' ? '异常报警' : '正常')}}</text>
+        <view wx:if="{{remoteStatus === 'fall'}}" style="margin-top: 10rpx; font-size: 28rpx; background: rgba(0,0,0,0.2); padding: 5rpx 15rpx; border-radius: 10rpx;">
+          <text>⚠️ 报警状态：蜂鸣器已触发</text>
+        </view>
+        <text class="time-label">更新时间: {{lastUpdateTime}}</text>
+      </view>
+
+      <button class="btn-primary" bindtap="refreshStatus">刷新状态</button>
+    </view>
+
+    <!-- AI 分析模块 -->
+    <view class="card">
     <view class="title">AI 健康助手</view>
     <view class="ai-box">
       <view wx:if="{{!aiResult}}" class="ai-placeholder">
@@ -54,5 +69,6 @@
         <text class="delete-btn" bindtap="deleteReminder" data-id="{{item._id}}">删除</text>
       </view>
     </view>
+  </view>
   </view>
 </view>

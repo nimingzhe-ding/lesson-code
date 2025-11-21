@@ -1,6 +1,9 @@
 <view class="container">
   <view class="card">
     <view class="title">设备连接</view>
+    <view style="text-align: center; margin-bottom: 20rpx; font-size: 32rpx; color: #2196F3; font-weight: bold;">
+      我的绑定码: {{bindingCode}}
+    </view>
     <view class="status-text">连接状态: {{connected ? '已连接' : '未连接'}}</view>
     <button class="btn-primary" bindtap="startScan" wx:if="{{!connected}}">搜索并连接拐杖</button>
     <button class="btn-danger" bindtap="disconnect" wx:if="{{connected}}">断开连接</button>
