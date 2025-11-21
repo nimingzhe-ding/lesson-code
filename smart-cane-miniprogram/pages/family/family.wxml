@@ -6,6 +6,9 @@
     <view class="status-box {{remoteStatus === 'fall' ? 'fall-bg' : 'normal-bg'}}">
       <text class="status-label">当前状态</text>
       <text class="status-value">{{statusText || (remoteStatus === 'fall' ? '异常报警' : '正常')}}</text>
+      <view wx:if="{{remoteStatus === 'fall'}}" style="margin-top: 10rpx; font-size: 28rpx; background: rgba(0,0,0,0.2); padding: 5rpx 15rpx; border-radius: 10rpx;">
+        <text>⚠️ 报警状态：蜂鸣器已触发</text>
+      </view>
       <text class="time-label">更新时间: {{lastUpdateTime}}</text>
     </view>
 

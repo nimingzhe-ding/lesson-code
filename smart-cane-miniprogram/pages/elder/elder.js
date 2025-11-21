@@ -300,8 +300,26 @@ Page({
     // 1. 震动
     wx.vibrateLong();
     
-    // 2. 上传状态到云端
-    this.updateCloudStatus(true, type);
+    // 2. 上传状态到云端 (包含蜂鸣器状态)
+    if (wx.cloud) {
+      const db = wx.cloud.database();
+      db.collection('cane_status').add({
+        data: {
+          status: 'fall',  // 统一标记为跌倒/报警状态
+          type: type,      // 'fall'或'help'
+          message: message,
+          hasBuzzer: true, // 标记蜂鸣器已报警
+          updateTime: db.serverDate(),
+          deviceInfo: 'ESP32 + AI Module'
+        },
+        success: res => {
+          this.addLog('报警信息已同步到云端');
+        },
+        fail: err => {
+          this.addLog('云端同步失败: ' + err.errMsg);
+        }
+      });
+    }
   },
 
   resetStatus() {
