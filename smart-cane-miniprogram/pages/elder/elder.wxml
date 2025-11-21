@@ -9,7 +9,7 @@
   <view class="card" wx:if="{{connected}}">
     <view class="title">实时状态</view>
     <view class="status-indicator {{isFall ? 'fall' : 'normal'}}">
-      {{isFall ? '跌倒报警！' : '状态正常'}}
+      {{isFall ? (eventMessage || '发生异常！') : 'AI 监控中...'}}
     </view>
     <view wx:if="{{isFall}}" style="margin-top: 20rpx; text-align: center; color: red;">
       正在向亲属发送警报...

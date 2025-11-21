@@ -5,10 +5,27 @@
     
     <view class="status-box {{remoteStatus === 'fall' ? 'fall-bg' : 'normal-bg'}}">
       <text class="status-label">当前状态</text>
-      <text class="status-value">{{remoteStatus === 'fall' ? '跌倒报警！' : '正常'}}</text>
+      <text class="status-value">{{statusText || (remoteStatus === 'fall' ? '异常报警' : '正常')}}</text>
       <text class="time-label">更新时间: {{lastUpdateTime}}</text>
     </view>
 
     <button class="btn-primary" bindtap="refreshStatus">刷新状态</button>
+  </view>
+
+  <!-- AI 分析模块 -->
+  <view class="card">
+    <view class="title">AI 健康助手</view>
+    <view class="ai-box">
+      <view wx:if="{{!aiResult}}" class="ai-placeholder">
+        点击下方按钮，AI 将根据设备数据分析老人健康状况
+      </view>
+      <view wx:else class="ai-result">
+        <text style="font-weight: bold; color: #2196F3;">AI 分析报告：</text>
+        <text>\n{{aiResult}}</text>
+      </view>
+    </view>
+    <button class="btn-ai" bindtap="analyzeHealth" loading="{{analyzing}}">
+      {{analyzing ? '正在分析中...' : '生成 AI 健康报告'}}
+    </button>
   </view>
 </view>

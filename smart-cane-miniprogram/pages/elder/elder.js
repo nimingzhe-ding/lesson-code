@@ -152,16 +152,26 @@ Page({
         // 监听数据变化
         wx.onBLECharacteristicValueChange((res) => {
           // 处理接收到的数据
-          // 假设 ESP32 发送的数据中包含跌倒信号
-          // 这里将 ArrayBuffer 转为 Hex 字符串方便查看
-          let buffer = res.value;
-          let hexArr = Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2)).join('');
-          console.log('收到数据:', hexArr);
+          // 适配 AI 模块：假设 AI 模块通过串口发给 ESP32，ESP32 再转发给小程序
+          // 建议协议：字符串指令，例如 "AI:FALL" (跌倒), "AI:HELP" (语音呼救)
           
-          // TODO: 根据你的 ESP32 协议修改判断逻辑
-          // 例如：如果收到 "FALL" 字符串，或者特定字节 0x01
-          // 这里模拟：只要收到数据就认为是跌倒（测试用）
-          this.handleFall();
+          let buffer = res.value;
+          // 将 ArrayBuffer 转为字符串
+          let dataStr = '';
+          let dataView = new DataView(buffer);
+          for (let i = 0; i < buffer.byteLength; i++) {
+            dataStr += String.fromCharCode(dataView.getUint8(i));
+          }
+          
+          console.log('收到 AI 模块数据:', dataStr);
+          this.addLog('AI 模块指令: ' + dataStr);
+
+          // 简单的指令解析
+          if (dataStr.includes('FALL') || dataStr.includes('01')) {
+            this.handleEvent('fall', '检测到跌倒！');
+          } else if (dataStr.includes('HELP') || dataStr.includes('SOS')) {
+            this.handleEvent('help', '检测到语音呼救！');
+          }
         })
       },
       fail: (err) => {
@@ -170,31 +180,29 @@ Page({
     })
   },
 
-  handleFall() {
+  handleEvent(type, message) {
     if (this.data.isFall) return; // 已经在报警中
     
-    this.setData({ isFall: true });
-    this.addLog('检测到跌倒！触发报警！');
+    this.setData({ 
+      isFall: true,
+      eventMessage: message // 新增：显示具体的报警原因
+    });
+    this.addLog(message + ' 触发报警！');
     
     // 1. 震动
     wx.vibrateLong();
     
-    // 2. 播放声音 (可选，需配置音频文件)
-    // const innerAudioContext = wx.createInnerAudioContext()
-    // innerAudioContext.src = 'http://.../alarm.mp3'
-    // innerAudioContext.play()
-
-    // 3. 上传状态到云端
-    this.updateCloudStatus(true);
+    // 2. 上传状态到云端
+    this.updateCloudStatus(true, type);
   },
 
   resetStatus() {
-    this.setData({ isFall: false });
+    this.setData({ isFall: false, eventMessage: '' });
     this.addLog('警报已解除');
-    this.updateCloudStatus(false);
+    this.updateCloudStatus(false, 'normal');
   },
 
-  updateCloudStatus(isFall) {
+  updateCloudStatus(isAlarm, type) {
     // 检查云开发是否初始化
     if (!wx.cloud) {
       this.addLog('云开发未初始化，无法同步状态');
@@ -202,23 +210,18 @@ Page({
     }
 
     const db = wx.cloud.database();
-    // 写入 'cane_status' 集合
-    // 实际应用中应该更新特定用户的记录，这里简单地添加一条新记录
     db.collection('cane_status').add({
       data: {
-        status: isFall ? 'fall' : 'normal',
-        updateTime: db.serverDate(), // 使用服务端时间
-        deviceInfo: 'ESP32-Cane'
+        status: isAlarm ? 'alarm' : 'normal',
+        type: type, // fall, help, normal
+        updateTime: db.serverDate(),
+        deviceInfo: 'ESP32 + AI Module'
       },
       success: res => {
         console.log('状态已同步到云端');
       },
       fail: err => {
         console.error('云端同步失败', err);
-        // 如果集合不存在，需要在云开发控制台创建 'cane_status' 集合
-        if (err.errMsg.includes('collection not exist')) {
-           this.addLog('错误：请在云开发控制台创建 cane_status 集合');
-        }
       }
     })
   },
