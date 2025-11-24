@@ -125,6 +125,32 @@
   gap: 15rpx;
 }
 
+.voice-toggle {
+  font-size: 40rpx;
+  padding: 0 10rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.voice-btn {
+  flex: 1;
+  background-color: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 30rpx;
+  padding: 15rpx 0;
+  font-size: 28rpx;
+  text-align: center;
+  color: #333;
+  user-select: none;
+}
+
+.voice-btn.recording {
+  background-color: #e3f2fd;
+  border-color: #2196F3;
+  color: #2196F3;
+}
+
 .chat-input {
   flex: 1;
   background-color: #f8f9fa;

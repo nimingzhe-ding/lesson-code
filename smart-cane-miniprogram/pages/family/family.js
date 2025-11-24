@@ -15,10 +15,23 @@ Page({
     chatHistory: [],
     chatInput: '',
     chatLoading: false,
-    scrollToView: ''
+    scrollToView: '',
+    isVoiceMode: false, // 是否为语音模式
+    recording: false    // 是否正在录音
   },
 
   onLoad() {
+    // 初始化录音管理器
+    this.recorderManager = wx.getRecorderManager();
+    this.recorderManager.onStop((res) => {
+      this.handleVoiceResult(res.tempFilePath);
+    });
+    this.recorderManager.onError((err) => {
+      console.error('录音报错', err);
+      wx.showToast({ title: '录音失败', icon: 'none' });
+    });
+
+    // 读取本地存储的绑定关系
     // 读取本地存储的绑定关系
     const savedCode = wx.getStorageSync('familyBindingCode');
     if (savedCode) {
@@ -309,5 +322,55 @@ Page({
       chatLoading: false,
       scrollToView: `msg-${updatedHistory.length - 1}`
     });
+  },
+
+  // 切换语音/文字模式
+  toggleVoiceMode() {
+    this.setData({ isVoiceMode: !this.data.isVoiceMode });
+  },
+
+  // 开始录音
+  startRecord() {
+    wx.authorize({
+      scope: 'scope.record',
+      success: () => {
+        this.setData({ recording: true });
+        this.recorderManager.start({
+          format: 'mp3'
+        });
+        wx.showToast({ title: '正在听...', icon: 'none', duration: 60000 });
+      },
+      fail: () => {
+        wx.showModal({ title: '提示', content: '需要麦克风权限才能使用语音功能' });
+      }
+    });
+  },
+
+  // 停止录音
+  stopRecord() {
+    if (this.data.recording) {
+      this.recorderManager.stop();
+      this.setData({ recording: false });
+      wx.hideToast();
+    }
+  },
+
+  // 处理录音结果
+  handleVoiceResult(tempFilePath) {
+    console.log('录音文件路径:', tempFilePath);
+    
+    wx.showLoading({ title: '语音识别中...' });
+
+    // DeepSeek 暂不支持语音转文字 (STT)，这里回退到模拟演示模式
+    // 这样您依然可以展示“按住说话 -> 识别文字”的交互效果
+    setTimeout(() => {
+      wx.hideLoading();
+      // 模拟识别结果
+      const mockText = "老人今天血压正常吗？"; 
+      
+      this.setData({ chatInput: mockText });
+      
+      wx.showToast({ title: '识别成功(模拟)', icon: 'success' });
+    }, 1000);
   }
 })

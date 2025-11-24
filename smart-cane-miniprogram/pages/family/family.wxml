@@ -66,7 +66,16 @@
     </scroll-view>
     
     <view class="chat-input-area">
-      <input class="chat-input" placeholder="询问关于老人的健康问题..." value="{{chatInput}}" bindinput="onChatInput" bindconfirm="sendChatMessage"/>
+      <view class="voice-toggle" bindtap="toggleVoiceMode">
+        <text>{{isVoiceMode ? '⌨️' : '🎤'}}</text>
+      </view>
+      
+      <view wx:if="{{isVoiceMode}}" class="voice-btn {{recording ? 'recording' : ''}}" bindtouchstart="startRecord" bindtouchend="stopRecord">
+        <text>{{recording ? '松开 结束' : '按住 说话'}}</text>
+      </view>
+      
+      <input wx:else class="chat-input" placeholder="询问关于老人的健康问题..." value="{{chatInput}}" bindinput="onChatInput" bindconfirm="sendChatMessage"/>
+      
       <button class="btn-send" bindtap="sendChatMessage" disabled="{{chatLoading}}">发送</button>
     </view>
   </view>
