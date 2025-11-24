@@ -312,24 +312,38 @@ Page({
     wx.vibrateLong();
     
     // 2. 上传状态到云端 (包含蜂鸣器状态)
+    const statusData = {
+      status: 'fall',
+      type: type,
+      message: message,
+      hasBuzzer: true,
+      updateTime: new Date(), // 使用本地时间，方便模拟
+      deviceInfo: 'ESP32 + AI Module',
+      bindingCode: this.data.bindingCode // 确保关联绑定码
+    };
+
+    // 优先尝试云端同步
     if (wx.cloud) {
       const db = wx.cloud.database();
       db.collection('cane_status').add({
         data: {
-          status: 'fall',  // 统一标记为跌倒/报警状态
-          type: type,      // 'fall'或'help'
-          message: message,
-          hasBuzzer: true, // 标记蜂鸣器已报警
-          updateTime: db.serverDate(),
-          deviceInfo: 'ESP32 + AI Module'
+          ...statusData,
+          updateTime: db.serverDate()
         },
         success: res => {
           this.addLog('报警信息已同步到云端');
         },
         fail: err => {
-          this.addLog('云端同步失败: ' + err.errMsg);
+          console.error('云端同步失败，切换至本地模拟模式', err);
+          this.addLog('云端不可用，已保存至本地模拟');
+          // 降级方案：保存到本地缓存，供同一设备上的亲属端读取测试
+          wx.setStorageSync('simulated_cane_status_' + this.data.bindingCode, statusData);
         }
       });
+    } else {
+      // 无云开发环境，直接本地模拟
+      wx.setStorageSync('simulated_cane_status_' + this.data.bindingCode, statusData);
+      this.addLog('本地模拟：报警状态已保存');
     }
   },
 
@@ -340,25 +354,31 @@ Page({
   },
 
   updateCloudStatus(isAlarm, type) {
-    // 检查云开发是否初始化
+    const statusData = {
+      status: isAlarm ? 'alarm' : 'normal',
+      type: type,
+      updateTime: new Date(),
+      deviceInfo: 'ESP32 + AI Module',
+      bindingCode: this.data.bindingCode
+    };
+
     if (!wx.cloud) {
-      this.addLog('云开发未初始化，无法同步状态');
+      wx.setStorageSync('simulated_cane_status_' + this.data.bindingCode, statusData);
       return;
     }
 
     const db = wx.cloud.database();
     db.collection('cane_status').add({
       data: {
-        status: isAlarm ? 'alarm' : 'normal',
-        type: type, // fall, help, normal
-        updateTime: db.serverDate(),
-        deviceInfo: 'ESP32 + AI Module'
+        ...statusData,
+        updateTime: db.serverDate()
       },
       success: res => {
         console.log('状态已同步到云端');
       },
       fail: err => {
-        console.error('云端同步失败', err);
+        console.error('云端同步失败，切换至本地模拟模式', err);
+        wx.setStorageSync('simulated_cane_status_' + this.data.bindingCode, statusData);
       }
     })
   },

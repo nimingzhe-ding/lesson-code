@@ -1,0 +1,9 @@
+{
+  "name": "ai_assistant",
+  "version": "1.0.0",
+  "description": "AI Assistant Cloud Function",
+  "main": "index.js",
+  "dependencies": {
+    "axios": "^1.6.0"
+  }
+}

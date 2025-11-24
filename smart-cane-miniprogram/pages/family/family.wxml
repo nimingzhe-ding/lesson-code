@@ -47,6 +47,30 @@
     </button>
   </view>
 
+  <!-- AI 对话模块 -->
+  <view class="card">
+    <view class="title">AI 智能问答</view>
+    <scroll-view scroll-y="true" class="chat-history" scroll-into-view="{{scrollToView}}">
+      <block wx:for="{{chatHistory}}" wx:key="index">
+        <view class="chat-msg {{item.role === 'user' ? 'msg-user' : 'msg-ai'}}" id="msg-{{index}}">
+          <view class="msg-bubble">
+            <text>{{item.content}}</text>
+          </view>
+        </view>
+      </block>
+      <view wx:if="{{chatLoading}}" class="chat-msg msg-ai">
+        <view class="msg-bubble">
+          <text>正在思考中...</text>
+        </view>
+      </view>
+    </scroll-view>
+    
+    <view class="chat-input-area">
+      <input class="chat-input" placeholder="询问关于老人的健康问题..." value="{{chatInput}}" bindinput="onChatInput" bindconfirm="sendChatMessage"/>
+      <button class="btn-send" bindtap="sendChatMessage" disabled="{{chatLoading}}">发送</button>
+    </view>
+  </view>
+
   <!-- 亲情设置模块 -->
   <view class="card">
     <view class="title">贴心管家</view>
