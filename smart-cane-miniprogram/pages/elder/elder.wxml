@@ -40,6 +40,14 @@
         <text style="font-size: 24rpx; color: #999; margin-top: 10rpx;">{{isPlayingNews ? '正在播放今日新闻摘要...' : '点击播放收听'}}</text>
       </view>
     </view>
+
+    <!-- 远程控制模块 -->
+    <view class="news-box" style="margin-top: 20rpx;">
+      <view class="section-title">设备控制</view>
+      <button class="btn-control {{lightState ? 'btn-active' : ''}}" bindtap="toggleLight" style="background: {{lightState ? '#FFC107' : '#f0f0f0'}}; color: {{lightState ? '#fff' : '#333'}};">
+        {{lightState ? '🔦 关闭照明' : '🔦 开启照明'}}
+      </button>
+    </view>
   </view>
   
   <view class="log-area">

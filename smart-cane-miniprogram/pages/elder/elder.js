@@ -12,11 +12,13 @@ Page({
     isFall: false,
     deviceId: '',
     serviceId: '',
-    characteristicId: '',
+    characteristicId: '', // 用于接收通知 (TX)
+    writeCharId: '',      // 用于发送指令 (RX)
     log: '准备就绪',
     weatherData: { temp: '25', text: '晴', city: '北京' },
     isPlayingNews: false,
-    innerAudioContext: null
+    innerAudioContext: null,
+    lightState: false // 手电筒状态
   },
 
   onLoad() {
@@ -232,15 +234,20 @@ Page({
       serviceId,
       success: (res) => {
         this.addLog('获取特征值成功，数量: ' + res.characteristics.length);
-        // 寻找支持 notify 或 indicate 的特征值
+        // 寻找支持 notify 或 indicate 的特征值 (TX)
         let char = res.characteristics.find(c => c.properties.notify || c.properties.indicate);
+        // 寻找支持 write 的特征值 (RX)
+        let writeChar = res.characteristics.find(c => c.properties.write || c.properties.writeNoResponse);
         
         if (char) {
           this.setData({ characteristicId: char.uuid });
           this.addLog('找到通知特征值: ' + char.uuid);
           this.notifyBLECharacteristicValueChange(deviceId, serviceId, char.uuid);
-        } else {
-          this.addLog('该服务下未找到支持通知的特征值，尝试其他服务...');
+        }
+        
+        if (writeChar) {
+          this.setData({ writeCharId: writeChar.uuid });
+          this.addLog('找到写入特征值: ' + writeChar.uuid);
         }
       },
       fail: (err) => {
@@ -272,14 +279,13 @@ Page({
           }
           
           console.log('收到设备数据:', dataStr);
-          this.addLog('收到指令: ' + dataStr);
-
-          // 简单的指令解析
-          // 兼容多种模块：
-          // 1. 防跌倒模块 -> ESP32 -> "FALL"
           // 2. AI 模块 -> ESP32 -> "AI:HELP", "AI:NEWS", "AI:WEATHER"
           if (dataStr.includes('FALL') || dataStr.includes('01')) {
             this.handleEvent('fall', '检测到跌倒！');
+          } else if (dataStr.includes('GAIT_WARN')) {
+            this.handleEvent('gait_warn', '步态异常警告！');
+          } else if (dataStr.includes('OBSTACLE')) {
+            this.handleEvent('obstacle', '前方有障碍物！');
           } else if (dataStr.includes('HELP') || dataStr.includes('SOS')) {
             this.handleEvent('help', '检测到语音呼救！');
           } else if (dataStr.includes('NEWS')) {
@@ -291,35 +297,37 @@ Page({
             this.broadcastWeather();
             this.addLog('执行指令: 查询天气');
           }
-        })
+        });
       },
       fail: (err) => {
-        this.addLog('开启监听失败: ' + err.errMsg);
+        this.addLog('notifyBLECharacteristicValueChange失败: ' + err.errMsg);
       }
     })
   },
 
   handleEvent(type, message) {
-    if (this.data.isFall) return; // 已经在报警中
+    // 如果是跌倒或呼救，视为紧急事件，锁定状态
+    if (type === 'fall' || type === 'help') {
+      if (this.data.isFall) return; 
+      this.setData({ isFall: true, eventMessage: message });
+      wx.vibrateLong();
+    } else {
+      // 如果是步态或避障，只记录日志并上传，不锁定界面为红色报警态
+      // 但为了演示效果，也可以弹个 Toast
+      wx.showToast({ title: message, icon: 'none' });
+    }
     
-    this.setData({ 
-      isFall: true,
-      eventMessage: message // 新增：显示具体的报警原因
-    });
-    this.addLog(message + ' 触发报警！');
-    
-    // 1. 震动
-    wx.vibrateLong();
+    this.addLog(message + ' 触发！');
     
     // 2. 上传状态到云端 (包含蜂鸣器状态)
     const statusData = {
-      status: 'fall',
+      status: (type === 'fall' || type === 'help') ? 'fall' : 'warning', // 区分紧急和普通警告
       type: type,
       message: message,
       hasBuzzer: true,
-      updateTime: new Date(), // 使用本地时间，方便模拟
+      updateTime: new Date(), 
       deviceInfo: 'ESP32 + AI Module',
-      bindingCode: this.data.bindingCode // 确保关联绑定码
+      bindingCode: this.data.bindingCode 
     };
 
     // 优先尝试云端同步
@@ -397,7 +405,8 @@ Page({
 
   // 发送数据给 ESP32 (支持分包发送长文本)
   sendToDevice(msg) {
-    if (!this.data.connected || !this.data.deviceId || !this.data.serviceId || !this.data.characteristicId) {
+    const charId = this.data.writeCharId || this.data.characteristicId;
+    if (!this.data.connected || !this.data.deviceId || !this.data.serviceId || !charId) {
       this.addLog('未连接设备，无法发送: ' + msg);
       return;
     }
@@ -425,7 +434,7 @@ Page({
       wx.writeBLECharacteristicValue({
         deviceId: this.data.deviceId,
         serviceId: this.data.serviceId,
-        characteristicId: this.data.characteristicId,
+        characteristicId: charId,
         value: chunk,
         success: () => {
           offset += length;
@@ -440,4 +449,12 @@ Page({
 
     sendLoop();
   },
+
+  // 切换手电筒
+  toggleLight() {
+    const newState = !this.data.lightState;
+    this.setData({ lightState: newState });
+    this.sendToDevice(newState ? 'on' : 'off');
+    wx.showToast({ title: newState ? '已开启照明' : '已关闭照明', icon: 'none' });
+  }
 })

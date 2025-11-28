@@ -17,7 +17,10 @@ Page({
     chatLoading: false,
     scrollToView: '',
     isVoiceMode: false, // 是否为语音模式
-    recording: false    // 是否正在录音
+    recording: false,    // 是否正在录音
+    // 新增健康数据
+    gaitStatus: '正常',
+    obstacleStatus: '安全'
   },
 
   onLoad() {
@@ -188,6 +191,8 @@ Page({
     const handleStatusData = (data) => {
       let statusText = '正常';
       let statusType = 'normal';
+      let gait = '正常';
+      let obstacle = '安全';
       
       if (data.status === 'alarm' || data.status === 'fall') {
         statusType = 'fall';
@@ -196,12 +201,22 @@ Page({
         } else {
           statusText = '跌倒报警！';
         }
+      } else if (data.status === 'warning') {
+        // 处理非紧急警告
+        if (data.type === 'gait_warn') {
+          gait = '步态异常';
+          wx.showToast({ title: '检测到老人步态异常', icon: 'none' });
+        } else if (data.type === 'obstacle') {
+          obstacle = '发现障碍';
+        }
       }
 
       this.setData({
         remoteStatus: statusType,
         statusText: statusText,
-        lastUpdateTime: this.formatTime(data.updateTime)
+        lastUpdateTime: this.formatTime(data.updateTime),
+        gaitStatus: gait,
+        obstacleStatus: obstacle
       });
     };
 

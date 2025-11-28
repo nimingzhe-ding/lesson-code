@@ -36,6 +36,51 @@
   margin-top: 10rpx;
 }
 
+/* 仪表盘样式 */
+.dashboard-grid {
+  display: flex;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
+.dashboard-item {
+  flex: 1;
+  background: #f8f9fa;
+  border-radius: 15rpx;
+  padding: 20rpx 10rpx;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 1px solid #eee;
+}
+
+.status-ok {
+  border-left: 8rpx solid #4CAF50;
+}
+
+.status-warn {
+  border-left: 8rpx solid #FFC107;
+  background: #fff8e1;
+}
+
+.dash-icon {
+  font-size: 40rpx;
+  margin-bottom: 10rpx;
+}
+
+.dash-label {
+  font-size: 24rpx;
+  color: #666;
+  margin-bottom: 5rpx;
+}
+
+.dash-value {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+}
+
 /* AI 模块样式 */
 .ai-box {
   background-color: #f8f9fa;

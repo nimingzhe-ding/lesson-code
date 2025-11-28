@@ -30,7 +30,29 @@
       <button class="btn-primary" bindtap="refreshStatus">刷新状态</button>
     </view>
 
-    <!-- AI 分析模块 -->
+    <!-- 健康监测仪表盘 -->
+    <view class="card">
+      <view class="title">健康监测</view>
+      <view class="dashboard-grid">
+        <view class="dashboard-item {{gaitStatus === '正常' ? 'status-ok' : 'status-warn'}}">
+          <view class="dash-icon">🚶</view>
+          <view class="dash-label">步态分析</view>
+          <view class="dash-value">{{gaitStatus}}</view>
+        </view>
+        <view class="dashboard-item {{obstacleStatus === '安全' ? 'status-ok' : 'status-warn'}}">
+          <view class="dash-icon">🚧</view>
+          <view class="dash-label">避障监测</view>
+          <view class="dash-value">{{obstacleStatus}}</view>
+        </view>
+        <view class="dashboard-item status-ok">
+          <view class="dash-icon">❤️</view>
+          <view class="dash-label">心率估算</view>
+          <view class="dash-value">75 bpm</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- AI 健康助手 -->
     <view class="card">
     <view class="title">AI 健康助手</view>
     <view class="ai-box">
