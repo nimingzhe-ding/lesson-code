@@ -1,1 +1,181 @@
 /* pages/index/index.wxss */
+.index-page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+  padding: 0 40rpx;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 品牌区域 */
+.brand-header {
+  padding-top: 120rpx;
+  text-align: center;
+  color: white;
+}
+
+.brand-logo {
+  font-size: 120rpx;
+  margin-bottom: 20rpx;
+  filter: drop-shadow(0 8rpx 16rpx rgba(0,0,0,0.2));
+}
+
+.brand-name {
+  font-size: 52rpx;
+  font-weight: 700;
+  letter-spacing: 4rpx;
+  text-shadow: 0 4rpx 8rpx rgba(0,0,0,0.15);
+}
+
+.brand-slogan {
+  font-size: 28rpx;
+  opacity: 0.9;
+  margin-top: 16rpx;
+  letter-spacing: 2rpx;
+}
+
+/* 身份选择区域 */
+.role-section {
+  margin-top: 80rpx;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 40rpx;
+}
+
+.section-line {
+  width: 60rpx;
+  height: 2rpx;
+  background: rgba(255,255,255,0.5);
+}
+
+.section-title {
+  color: white;
+  font-size: 28rpx;
+  margin: 0 24rpx;
+  opacity: 0.9;
+}
+
+.role-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 30rpx;
+}
+
+.role-card {
+  background: white;
+  border-radius: 24rpx;
+  padding: 36rpx;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 16rpx 48rpx rgba(0,0,0,0.15);
+  transition: all 0.3s ease;
+}
+
+.card-hover {
+  transform: scale(0.98);
+  box-shadow: 0 8rpx 24rpx rgba(0,0,0,0.1);
+}
+
+.role-icon-wrap {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.elder-icon-bg {
+  background: linear-gradient(135deg, #4CAF50, #81C784);
+}
+
+.family-icon-bg {
+  background: linear-gradient(135deg, #2196F3, #64B5F6);
+}
+
+.role-icon {
+  font-size: 48rpx;
+}
+
+.role-info {
+  flex: 1;
+  margin-left: 28rpx;
+}
+
+.role-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #1a1a2e;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.role-desc {
+  font-size: 26rpx;
+  color: #666;
+  display: block;
+}
+
+.role-arrow {
+  font-size: 48rpx;
+  color: #ccc;
+  font-weight: 300;
+}
+
+/* 功能特性 */
+.features-section {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 60rpx;
+  padding: 40rpx 0;
+}
+
+.feature-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.feature-icon {
+  font-size: 40rpx;
+  margin-bottom: 12rpx;
+}
+
+.feature-text {
+  font-size: 22rpx;
+  color: rgba(255,255,255,0.85);
+}
+
+/* 底部版权 */
+.footer {
+  margin-top: auto;
+  padding: 40rpx 0;
+  text-align: center;
+}
+
+.footer-text {
+  font-size: 22rpx;
+  color: rgba(255,255,255,0.6);
+}
+
+/* 主入口样式 */
+.main-card {
+  background: linear-gradient(135deg, #ffffff, #f8f9fa);
+}
+
+.main-icon-bg {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.role-hint {
+  font-size: 22rpx;
+  color: #999;
+  display: block;
+  margin-top: 6rpx;
+}

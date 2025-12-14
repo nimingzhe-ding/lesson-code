@@ -1,9 +1,57 @@
-<view class="container">
-  <view class="title">欢迎使用智能拐杖</view>
-  <view class="card">
-    <view style="text-align: center; margin-bottom: 40rpx; color: #666;">请选择您的身份</view>
-    <button class="btn-primary" bindtap="goToElder">我是老人 (连接拐杖)</button>
-    <view style="height: 30rpx;"></view>
-    <button class="btn-primary" style="background-color: #2196F3;" bindtap="goToFamily">我是亲属 (查看状态)</button>
+<view class="index-page">
+  <!-- 顶部品牌区域 -->
+  <view class="brand-header">
+    <view class="brand-logo">🦯</view>
+    <view class="brand-name">智能守护拐杖</view>
+    <view class="brand-slogan">科技关怀 · 安全同行</view>
+  </view>
+
+  <!-- 功能选择区域 -->
+  <view class="role-section">
+    <view class="section-header">
+      <view class="section-line"></view>
+      <text class="section-title">开始使用</text>
+      <view class="section-line"></view>
+    </view>
+
+    <view class="role-cards">
+      <!-- 主入口 -->
+      <view class="role-card main-card" bindtap="goToMain" hover-class="card-hover">
+        <view class="role-icon-wrap main-icon-bg">
+          <text class="role-icon">🦯</text>
+        </view>
+        <view class="role-info">
+          <text class="role-title">进入守护</text>
+          <text class="role-desc">连接设备，监测步态与健康状态</text>
+          <text class="role-hint">包含老人端与亲属端功能</text>
+        </view>
+        <view class="role-arrow">›</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 功能特性展示 -->
+  <view class="features-section">
+    <view class="feature-item">
+      <view class="feature-icon">🛡️</view>
+      <text class="feature-text">跌倒检测</text>
+    </view>
+    <view class="feature-item">
+      <view class="feature-icon">📍</view>
+      <text class="feature-text">实时定位</text>
+    </view>
+    <view class="feature-item">
+      <view class="feature-icon">🔔</view>
+      <text class="feature-text">紧急呼救</text>
+    </view>
+    <view class="feature-item">
+      <view class="feature-icon">🤖</view>
+      <text class="feature-text">AI助手</text>
+    </view>
+  </view>
+
+  <!-- 底部版权 -->
+  <view class="footer">
+    <text class="footer-text">© 2025 智能守护科技 版权所有</text>
   </view>
 </view>

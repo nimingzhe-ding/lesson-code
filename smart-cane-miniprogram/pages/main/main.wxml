@@ -1,0 +1,393 @@
+<view class="test-page">
+  <!-- 顶部 Tab 切换 -->
+  <view class="tab-header">
+    <view class="tab-item {{currentTab === 'elder' ? 'tab-active' : ''}}" bindtap="switchTab" data-tab="elder">
+      <text class="tab-icon">👴</text>
+      <text class="tab-text">老人端</text>
+      <view class="tab-indicator" wx:if="{{currentTab === 'elder'}}"></view>
+    </view>
+    <view class="tab-item {{currentTab === 'family' ? 'tab-active' : ''}}" bindtap="switchTab" data-tab="family">
+      <text class="tab-icon">👨‍👩‍👧</text>
+      <text class="tab-text">亲属端</text>
+      <view class="tab-indicator" wx:if="{{currentTab === 'family'}}"></view>
+    </view>
+  </view>
+
+  <!-- ==================== 老人端视图 ==================== -->
+  <scroll-view scroll-y class="page-content" wx:if="{{currentTab === 'elder'}}">
+    <!-- 绑定码显示 -->
+    <view class="info-bar">
+      <text class="info-label">绑定码:</text>
+      <text class="info-value">{{bindingCode}}</text>
+      <view class="ble-status {{connected ? 'ble-on' : 'ble-off'}}">
+        <view class="ble-dot"></view>
+        <text>{{connected ? '蓝牙已连接' : '蓝牙未连接'}}</text>
+      </view>
+    </view>
+
+    <!-- 设备连接卡片 -->
+    <view class="section-card">
+      <view class="card-header">
+        <text class="card-icon">📱</text>
+        <text class="card-title">设备连接</text>
+      </view>
+      
+      <view wx:if="{{scanning}}" class="connect-hint">
+        <text>🔍 正在搜索智能拐杖...</text>
+      </view>
+      <view wx:elif="{{!connected}}" class="connect-hint">
+        <text>点击按钮搜索智能拐杖 (Smart_Cane_ESP32)</text>
+      </view>
+      <view wx:else class="connect-info">
+        <text class="info-text">✅ ESP32 智能拐杖已连接</text>
+      </view>
+      
+      <button class="action-btn {{connected ? 'btn-danger' : 'btn-primary'}}" 
+              bindtap="{{connected ? 'disconnect' : 'startScan'}}"
+              disabled="{{scanning}}"
+              loading="{{scanning}}">
+        {{connected ? '断开连接' : (scanning ? '搜索中...' : '搜索连接')}}
+      </button>
+    </view>
+
+    <!-- 警报显示区域 -->
+    <view class="alert-card {{alertType === 'fall' ? 'alert-fall' : 'alert-gait'}}" wx:if="{{isFall || isGaitAlert}}">
+      <view class="alert-header">
+        <text class="alert-icon">{{alertType === 'fall' ? '🚨' : '⚠️'}}</text>
+        <text class="alert-type">{{alertType === 'fall' ? '跌倒检测警报' : '步态异常警报'}}</text>
+      </view>
+      <view class="alert-message">
+        <text>{{eventMessage}}</text>
+      </view>
+      <view class="alert-time">
+        <text>警报时间: {{alertTime || '刚刚'}}</text>
+      </view>
+      <button class="action-btn btn-dismiss" bindtap="dismissAlarm">
+        🔕 解除警报
+      </button>
+    </view>
+
+    <!-- 实时状态 -->
+    <view class="section-card status-card" wx:if="{{!isFall && !isGaitAlert}}">
+      <view class="card-header">
+        <text class="card-icon">💓</text>
+        <text class="card-title">实时状态 (跌倒检测始终开启)</text>
+      </view>
+      <view class="status-display">
+        <text class="status-emoji">{{connected ? '✅' : '📴'}}</text>
+        <text class="status-text">{{connected ? '监控中，一切正常' : '请先连接设备'}}</text>
+      </view>
+    </view>
+
+    <!-- 功能状态 -->
+    <view class="section-card" wx:if="{{connected}}">
+      <view class="card-header">
+        <text class="card-icon">🎮</text>
+        <text class="card-title">功能状态 (摇杆控制)</text>
+      </view>
+      <view class="mode-row">
+        <view class="mode-item {{gaitEnabled ? 'mode-on' : ''}}">
+          <text class="mode-icon">🚶</text>
+          <text>步态检测</text>
+          <text class="mode-status">{{gaitEnabled ? 'ON' : 'OFF'}}</text>
+        </view>
+        <view class="mode-item {{obstacleEnabled ? 'mode-on' : ''}}">
+          <text class="mode-icon">🚧</text>
+          <text>避障模式</text>
+          <text class="mode-status">{{obstacleEnabled ? 'ON' : 'OFF'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 步态数据 -->
+    <view class="section-card" wx:if="{{connected}}">
+      <view class="card-header">
+        <text class="card-icon">🚶</text>
+        <text class="card-title">步态监测</text>
+        <view class="score-badge {{gaitData.score >= 80 ? 'score-good' : (gaitData.score >= 60 ? 'score-warn' : 'score-bad')}}">
+          {{gaitData.score}}分
+        </view>
+      </view>
+      
+      <!-- 步态状态提示 -->
+      <view class="gait-status-bar {{gaitData.riskLevel}}" wx:if="{{gaitData.status !== '正常'}}">
+        <text>⚠️ {{gaitData.status}}</text>
+      </view>
+      
+      <view class="step-count-row">
+        <text class="step-icon">👟</text>
+        <text class="step-value">{{stepCount}}</text>
+        <text class="step-label">步</text>
+      </view>
+      <view class="data-grid">
+        <view class="data-item">
+          <text class="data-value">{{gaitData.stepFreq}}</text>
+          <text class="data-label">步频(步/分)</text>
+        </view>
+        <view class="data-item">
+          <text class="data-value">{{gaitData.instability}}%</text>
+          <text class="data-label">波动性</text>
+        </view>
+        <view class="data-item">
+          <text class="data-value">{{obstacleCount}}</text>
+          <text class="data-label">障碍报警</text>
+        </view>
+      </view>
+      
+      <!-- 重置按钮 -->
+      <button class="action-btn btn-secondary" bindtap="resetGaitData">
+        重置数据
+      </button>
+    </view>
+
+    <!-- 设备日志 -->
+    <view class="section-card">
+      <view class="card-header">
+        <text class="card-icon">📋</text>
+        <text class="card-title">设备日志</text>
+        <text class="clear-log" bindtap="clearLog">清空</text>
+      </view>
+      <scroll-view scroll-y class="log-box">
+        <text class="log-text">{{log}}</text>
+      </scroll-view>
+    </view>
+  </scroll-view>
+
+  <!-- ==================== 亲属端视图 ==================== -->
+  <scroll-view scroll-y class="page-content" wx:if="{{currentTab === 'family'}}">
+    <!-- 老人端状态 -->
+    <view class="info-bar family-bar">
+      <text class="info-label">监控老人:</text>
+      <text class="info-value">{{bindingCode}}</text>
+      <view class="online-status {{elderOnline ? 'online' : 'offline'}}">
+        <view class="online-dot"></view>
+        <text>{{elderOnline ? '在线' : '离线'}}</text>
+      </view>
+    </view>
+
+    <!-- 亲属端警报显示区域 -->
+    <view class="alert-card {{familyAlertType === 'fall' ? 'alert-fall' : 'alert-gait'}}" wx:if="{{familyIsFall || familyIsGaitAlert}}">
+      <view class="alert-header">
+        <text class="alert-icon">{{familyAlertType === 'fall' ? '🚨' : '⚠️'}}</text>
+        <text class="alert-type">{{familyAlertType === 'fall' ? '跌倒检测警报' : '步态异常警报'}}</text>
+      </view>
+      <view class="alert-message">
+        <text>{{familyEventMessage}}</text>
+      </view>
+      <view class="alert-time">
+        <text>警报时间: {{familyAlertTime || '刚刚'}}</text>
+      </view>
+      <button class="action-btn btn-dismiss" bindtap="dismissFamilyAlarm">
+        🔕 解除警报
+      </button>
+    </view>
+
+    <!-- 实时监控 -->
+    <view class="section-card status-card {{remoteStatus === 'fall' ? 'card-alert' : ''}}">
+      <view class="card-header">
+        <text class="card-icon">📡</text>
+        <text class="card-title">实时监控</text>
+      </view>
+      <view class="status-display">
+        <text class="status-emoji">{{remoteStatus === 'fall' ? '🚨' : (elderOnline ? '✅' : '📴')}}</text>
+        <text class="status-text">{{remoteStatus === 'fall' ? '紧急报警！' : (elderOnline ? '老人状态正常' : '等待老人端上线')}}</text>
+      </view>
+      <text class="update-time">更新: {{lastUpdateTime || '--'}}</text>
+    </view>
+
+    <!-- 健康仪表盘 -->
+    <view class="section-card">
+      <view class="card-header">
+        <text class="card-icon">📊</text>
+        <text class="card-title">健康监测</text>
+      </view>
+      <view class="health-grid">
+        <view class="health-item {{gaitStatus === '正常' ? '' : 'item-warn'}}">
+          <text class="health-icon">🚶</text>
+          <text class="health-label">步态</text>
+          <text class="health-value">{{gaitStatus}}</text>
+        </view>
+        <view class="health-item">
+          <text class="health-icon">🚧</text>
+          <text class="health-label">避障</text>
+          <text class="health-value">{{obstacleStatus}}</text>
+        </view>
+        <view class="health-item">
+          <text class="health-icon">❤️</text>
+          <text class="health-label">心率</text>
+          <text class="health-value">{{heartRateStatus}}</text>
+        </view>
+        <view class="health-item">
+          <text class="health-icon">🔋</text>
+          <text class="health-label">电量</text>
+          <text class="health-value">{{batteryStatus}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 步态详情 -->
+    <view class="section-card">
+      <view class="card-header">
+        <text class="card-icon">🚶</text>
+        <text class="card-title">步态分析</text>
+        <view class="score-badge {{familyGaitScore >= 80 ? 'score-good' : (familyGaitScore >= 60 ? 'score-warn' : 'score-bad')}}">
+          {{familyGaitScore}}分
+        </view>
+      </view>
+      
+      <!-- 步态状态提示 (异常时显示) -->
+      <view class="gait-status-bar {{familyRiskLevel}}" wx:if="{{familyGaitStatus !== '正常'}}">
+        <text>⚠️ {{familyGaitStatus}}</text>
+      </view>
+      
+      <view class="step-count-row">
+        <text class="step-icon">👟</text>
+        <text class="step-value">{{familyStepCount}}</text>
+        <text class="step-label">今日步数</text>
+      </view>
+      <view class="data-grid">
+        <view class="data-item">
+          <text class="data-value">{{familyStepFreq}}</text>
+          <text class="data-label">步频(步/分)</text>
+        </view>
+        <view class="data-item">
+          <text class="data-value">{{familyInstability}}%</text>
+          <text class="data-label">波动性</text>
+        </view>
+        <view class="data-item">
+          <text class="data-value">{{familyObstacleCount}}</text>
+          <text class="data-label">障碍报警</text>
+        </view>
+      </view>
+      <view class="risk-bar {{familyRiskLevel}}">
+        <text>风险等级: {{familyRiskLevel === 'normal' ? '安全' : (familyRiskLevel === 'warning' ? '注意' : '危险')}}</text>
+      </view>
+    </view>
+
+    <!-- 历史评分记录 -->
+    <view class="section-card">
+      <view class="card-header">
+        <text class="card-icon">📈</text>
+        <text class="card-title">历史评分</text>
+        <view class="history-toggle" bindtap="toggleHistory">
+          <text>{{showHistory ? '收起' : '展开'}}</text>
+        </view>
+      </view>
+      
+      <!-- 统计摘要 -->
+      <view class="history-summary">
+        <view class="summary-item">
+          <text class="summary-value">{{todayScoreCount}}</text>
+          <text class="summary-label">今日记录</text>
+        </view>
+        <view class="summary-item">
+          <text class="summary-value {{averageScore >= 80 ? 'score-good-text' : (averageScore >= 60 ? 'score-warn-text' : 'score-bad-text')}}">{{averageScore}}</text>
+          <text class="summary-label">平均评分</text>
+        </view>
+        <view class="summary-item">
+          <text class="summary-value">{{scoreHistory.length}}</text>
+          <text class="summary-label">总记录数</text>
+        </view>
+      </view>
+      
+      <!-- 历史记录列表 -->
+      <scroll-view scroll-y class="history-list" wx:if="{{showHistory}}">
+        <view class="history-empty" wx:if="{{scoreHistory.length === 0}}">
+          <text>暂无历史记录</text>
+        </view>
+        <view class="history-item {{item.riskLevel}}" wx:for="{{scoreHistory}}" wx:key="id">
+          <view class="history-time">
+            <text class="history-date">{{item.date}}</text>
+            <text class="history-clock">{{item.time}}</text>
+          </view>
+          <view class="history-data">
+            <text class="history-score {{item.score >= 80 ? 'score-good-text' : (item.score >= 60 ? 'score-warn-text' : 'score-bad-text')}}">{{item.score}}分</text>
+            <text class="history-detail">步频:{{item.stepFreq}} | 波动:{{item.instability}}%</text>
+          </view>
+          <view class="history-status">
+            <text class="status-dot {{item.riskLevel}}"></text>
+          </view>
+        </view>
+      </scroll-view>
+      
+      <!-- 清空按钮 -->
+      <view class="history-actions" wx:if="{{showHistory && scoreHistory.length > 0}}">
+        <button class="action-btn btn-secondary" bindtap="clearHistory">清空历史记录</button>
+      </view>
+    </view>
+
+    <!-- AI 分析 -->
+    <view class="section-card ai-section">
+      <view class="card-header">
+        <text class="card-icon">🤖</text>
+        <text class="card-title">AI 健康助手</text>
+        <view class="clear-btn" bindtap="clearChat" wx:if="{{chatHistory.length > 0}}">
+          <text>清空</text>
+        </view>
+      </view>
+      
+      <!-- 快捷问题 -->
+      <view class="quick-questions">
+        <view class="quick-btn" bindtap="quickAsk" data-question="如何预防老人跌倒？">预防跌倒</view>
+        <view class="quick-btn" bindtap="quickAsk" data-question="老人应该如何锻炼身体？">锻炼建议</view>
+        <view class="quick-btn" bindtap="quickAsk" data-question="步态不稳该怎么办？">步态改善</view>
+        <view class="quick-btn" bindtap="quickAsk" data-question="如何提高老人安全意识？">安全指南</view>
+      </view>
+
+      <!-- 聊天记录 -->
+      <scroll-view class="chat-container" scroll-y="true" scroll-into-view="chat-bottom">
+        <!-- 默认欢迎语 -->
+        <view class="chat-message ai-message" wx:if="{{chatHistory.length === 0}}">
+          <view class="avatar ai-avatar">🤖</view>
+          <view class="message-content">
+            <text>您好！我是AI健康助手，可以为您解答关于老人步态、健康、安全等问题。您可以点击上方快捷问题，或直接输入问题。</text>
+          </view>
+        </view>
+        
+        <!-- 聊天记录 -->
+        <view class="chat-message {{item.role === 'user' ? 'user-message' : 'ai-message'}}" 
+              wx:for="{{chatHistory}}" wx:key="index">
+          <view class="avatar {{item.role === 'user' ? 'user-avatar' : 'ai-avatar'}}">
+            {{item.role === 'user' ? '👤' : '🤖'}}
+          </view>
+          <view class="message-content">
+            <text>{{item.content}}</text>
+          </view>
+        </view>
+        
+        <!-- 加载中 -->
+        <view class="chat-message ai-message" wx:if="{{asking}}">
+          <view class="avatar ai-avatar">🤖</view>
+          <view class="message-content typing">
+            <text>正在思考中</text>
+            <view class="typing-dots">
+              <text class="dot">.</text>
+              <text class="dot">.</text>
+              <text class="dot">.</text>
+            </view>
+          </view>
+        </view>
+        
+        <view id="chat-bottom"></view>
+      </scroll-view>
+
+      <!-- 输入区域 -->
+      <view class="chat-input-area">
+        <input class="chat-input" 
+               placeholder="输入您的问题..." 
+               value="{{userQuestion}}"
+               bindinput="onQuestionInput"
+               confirm-type="send"
+               bindconfirm="askAI"/>
+        <button class="send-btn" bindtap="askAI" disabled="{{asking || !userQuestion}}">
+          发送
+        </button>
+      </view>
+
+      <!-- 健康报告按钮 -->
+      <button class="action-btn btn-ai" bindtap="analyzeHealth" loading="{{analyzing}}">
+        {{analyzing ? '分析中...' : '📊 生成今日健康报告'}}
+      </button>
+    </view>
+  </scroll-view>
+</view>
